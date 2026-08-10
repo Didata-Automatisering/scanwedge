@@ -307,6 +307,14 @@ enum class BarcodeTypes(val code: String) {
             else -> null
         }
     }
+    /// True for the DataLogic symbologies that own a `<decoder>_LENGTH_CONTROL`/`_LENGTH1`/`_LENGTH2`
+    /// property set. The fixed-length ones (EAN/UPC/GS1 DataBar/MaxiCode) and GS1-128 - which is an
+    /// option of the Code 128 decoder and uses Code 128's lengths - have none, and sending a length
+    /// property for them fails the entire configuration COMMIT.
+    fun datalogicHasLengthControl(): Boolean = when(this) {
+        CODE128, CODE39, I2OF5, CODABAR, DATAMATRIX, QRCODE, AZTEC, PDF417 -> true
+        else -> false
+    }
     fun datalogicDecoderName(): String?{
         return when(this) {
             AZTEC -> "AZTEC"

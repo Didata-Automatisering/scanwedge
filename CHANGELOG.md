@@ -80,3 +80,9 @@
 * Stopping the native battery monitor on stream cancellation and disposing a previous monitor on re-subscribe, preventing a leaked/duplicated receiver
 * Fixed `intentLog` being dropped on deserialization when `extraMap` was null
 * Fixed Honeywell GS1 DataBar mapping to the wrong decoder (`DEC_EAN128`, which collided with EAN128); GS1 DataBar now maps to `DEC_RSS_14` and GS1 DataBar Expanded to `DEC_RSS_EXPANDED` (previously unsupported on Honeywell) (#18)
+
+## 1.1.6
+* Fixed DataLogic profiles being silently rejected when a length was set on a symbology that has no length properties. GS1-128 in particular is an option of the Code 128 decoder (`CODE128_GS1_ENABLE`) and has no `CODE128_GS1_LENGTH*` properties — sending them failed the whole configuration COMMIT, so the scanner silently kept the previously applied profile and none of the requested barcodes were enabled (a profile asking for Code 128 20-20 alongside GS1-128 left the lengths of the profile before it in place). `BarcodeTypes.datalogicHasLengthControl()` now decides which symbologies get `_LENGTH_CONTROL`/`_LENGTH1`/`_LENGTH2`, and a dropped length is logged
+* A DataLogic profile that enables GS1-128 now also enables the Code 128 decoder that actually decodes it
+* The DataLogic property map is logged at info instead of debug — a rejected COMMIT gives no feedback, so this map is the only evidence of what the profile actually asked for
+* Added `BarcodePlugin.withType()` and a `toString()` that shows the symbology and its length range

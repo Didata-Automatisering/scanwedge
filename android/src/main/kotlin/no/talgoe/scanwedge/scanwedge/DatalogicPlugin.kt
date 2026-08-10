@@ -100,11 +100,17 @@ class DatalogicPlugin(private val scanW: ScanwedgePlugin, private val log: Logge
         log?.i(TAG, "createProfile($name, $enabledBarcodes, $hwConfig, $keepDefaults)")
         val datalogicDefaultTypes=BarcodeTypes.datalogicDefaultTypes().toMutableList()
         val properties = ArrayList<String>()
-        if(enabledBarcodes!=null){
-            for(barcode in enabledBarcodes){
-                barcode.datalogicAddToList(properties)
-                datalogicDefaultTypes.remove(barcode.type)
-            }
+        val barcodes = enabledBarcodes?.toMutableList() ?: mutableListOf()
+        // GS1-128 is decoded by the Code 128 decoder on DataLogic, so a profile that enables only
+        // GS1-128 would end up with Code 128 disabled below and nothing to decode the label with.
+        val gs1 = barcodes.firstOrNull { it.type == BarcodeTypes.EAN128 }
+        if(gs1 != null && barcodes.none { it.type == BarcodeTypes.CODE128 }){
+            log?.i(TAG, "createProfile: GS1-128 is decoded by the Code 128 decoder, enabling it as well")
+            barcodes.add(gs1.withType(BarcodeTypes.CODE128))
+        }
+        for(barcode in barcodes){
+            barcode.datalogicAddToList(properties)
+            datalogicDefaultTypes.remove(barcode.type)
         }
         if(!keepDefaults){
             for(barcode in datalogicDefaultTypes){
@@ -114,7 +120,10 @@ class DatalogicPlugin(private val scanW: ScanwedgePlugin, private val log: Logge
         }else{
             log?.d(TAG, "keeping default barcodes")
         }
-        log?.d(TAG, "properties: $properties")
+        // Info, not debug: a COMMIT that DataLogic rejects (one unknown property name is enough) is
+        // silent - the scanner just keeps the previous profile - so this map is the only evidence of
+        // what was actually asked for.
+        log?.i(TAG, "properties: $properties")
         scanW.sendBroadcast(Intent(ACTION_CONFIGURATION_COMMIT).apply{
             putExtra(EXTRA_CONFIGURATION_CHANGED_MAP, properties.joinToString(","))
         })

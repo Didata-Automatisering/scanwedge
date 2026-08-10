@@ -54,11 +54,28 @@ class BarcodePlugin(val type: BarcodeTypes, private val minLength: Int?, private
         }
     }
 
+    /// Same length settings on another symbology. Used when one decoder covers another - DataLogic
+    /// decodes GS1-128 with the Code 128 decoder.
+    fun withType(type: BarcodeTypes) = BarcodePlugin(type, minLength, maxLength, log)
+
+    override fun toString() = "BarcodePlugin($type${if(minLength!=null||maxLength!=null) ",$minLength-$maxLength" else ""})"
+
     fun datalogicAddToList(lst: ArrayList<String>) {
         val decoderName = type.datalogicDecoderName()
         if(decoderName != null) {
             log?.d("BarcodePlugin", "datalogicAddToList enable: $type, $decoderName")
             lst.add("${decoderName}_ENABLE=true")
+            if(!type.datalogicHasLengthControl()){
+                // Only some DataLogic symbologies have length properties. GS1-128 for instance is an
+                // option of the Code 128 decoder (CODE128_GS1_ENABLE) and has no CODE128_GS1_LENGTH*
+                // properties of its own - it uses Code 128's. Sending a property DataLogic does not
+                // know makes the *whole* configuration COMMIT fail, so the scanner silently keeps the
+                // previous profile and the caller never learns its barcodes were never enabled.
+                if(minLength != null || maxLength != null) {
+                    log?.i("BarcodePlugin", "datalogicAddToList: $type has no length control on DataLogic, ignoring $minLength-$maxLength")
+                }
+                return
+            }
             if(minLength==0 && maxLength==0){
                 lst.add("${decoderName}_LENGTH_CONTROL=0")
             }else if(minLength!=null || maxLength!=null){
