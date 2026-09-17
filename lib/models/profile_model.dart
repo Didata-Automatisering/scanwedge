@@ -1,5 +1,6 @@
 import 'package:scanwedge/models/aimtype.dart';
 import 'package:scanwedge/models/barcodetype_enum.dart';
+import 'package:scanwedge/models/newland_trigger_mode.dart';
 
 /// ProfileModel class
 /// This generic class has the settings for the basic scanprofile
@@ -81,18 +82,52 @@ class ZebraProfileModel extends ProfileModel {
 class NewlandProfileModel extends ProfileModel {
   /// On by default. The plugin drops failed scans anyway, so switching it off only saves traffic.
   final bool? sendScanFailBroadcast;
+  final NewlandTriggerMode? triggerMode;
+
+  /// One decode attempt. The device caps it at 9 seconds.
+  final Duration? scanTimeout;
+
+  /// How long the same barcode is ignored after a read. Zero allows an immediate reread.
+  final Duration? rereadDelay;
+
+  /// Gap between decode attempts in continuous mode. The device floors it at 50 ms.
+  final Duration? scanInterval;
+  final bool? soundOnScan, vibrateOnScan, ledOnScan;
+  final bool? mainTriggerKey, leftTriggerKey, rightTriggerKey, pistolGripTrigger;
 
   NewlandProfileModel({
     required super.profileName,
     super.enabledBarcodes,
     super.keepDefaults,
     this.sendScanFailBroadcast,
+    this.triggerMode,
+    this.scanTimeout,
+    this.rereadDelay,
+    this.scanInterval,
+    this.soundOnScan,
+    this.vibrateOnScan,
+    this.ledOnScan,
+    this.mainTriggerKey,
+    this.leftTriggerKey,
+    this.rightTriggerKey,
+    this.pistolGripTrigger,
   });
 
   @override
   Map<String, dynamic> get customMap => {
         'newland': {
           if (sendScanFailBroadcast != null) 'sendScanFailBroadcast': sendScanFailBroadcast,
+          if (triggerMode != null) 'triggerMode': triggerMode!.name,
+          if (scanTimeout != null) 'scanTimeout': scanTimeout!.inMilliseconds,
+          if (rereadDelay != null) 'rereadDelay': rereadDelay!.inMilliseconds,
+          if (scanInterval != null) 'scanInterval': scanInterval!.inMilliseconds,
+          if (soundOnScan != null) 'soundOnScan': soundOnScan,
+          if (vibrateOnScan != null) 'vibrateOnScan': vibrateOnScan,
+          if (ledOnScan != null) 'ledOnScan': ledOnScan,
+          if (mainTriggerKey != null) 'mainTriggerKey': mainTriggerKey,
+          if (leftTriggerKey != null) 'leftTriggerKey': leftTriggerKey,
+          if (rightTriggerKey != null) 'rightTriggerKey': rightTriggerKey,
+          if (pistolGripTrigger != null) 'pistolGripTrigger': pistolGripTrigger,
         },
       };
 }
