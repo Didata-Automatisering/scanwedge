@@ -31,6 +31,17 @@ internal class NewlandProfileTest {
   }
 
   @Test
+  fun twoTypesSharingACodeIdDoNotCancelEachOther() {
+    val shared = BarcodeTypes.GS1_DATABAR.newlandDecoderName()!!
+    val settings = newlandBarcodeSettings(listOf(plugin(BarcodeTypes.GS1_DATABAR)), keepDefaults = false)
+
+    assertEquals(
+      listOf(NewlandBarcodeSetting(shared, "Enable", "1")),
+      settings.filter { it.codeId == shared },
+    )
+  }
+
+  @Test
   fun aTypeNewlandCannotNameIsSkipped() {
     val settings = newlandBarcodeSettings(listOf(plugin(BarcodeTypes.MAILMARK)), keepDefaults = true)
 
