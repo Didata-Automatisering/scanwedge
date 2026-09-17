@@ -196,17 +196,25 @@ enum class BarcodeTypes(val code: String) {
                 // Linear
                 "CODE128" -> CODE128
                 "CODE39" -> CODE39
-                "UCCEAN128" -> EAN128
+                "CODE93" -> CODE93
+                "CODABAR" -> CODABAR
+                "UCCEAN128", "GS1_128" -> EAN128
+                "ITF", "ITF6", "ITF14" -> I2OF5
                 // EAN / UPC
                 "EAN8" -> EAN8
                 "EAN13" -> EAN13
                 "UPCA" -> UPCA
                 "UPCE" -> UPCE0
+                // GS1 DataBar
+                "RSS14", "RSSLIMITED" -> GS1_DATABAR
+                "RSSEXPANDED" -> GS1_DATABAR_EXPANDED
                 // 2D
-                "QRCode" -> QRCODE
+                "QRCODE", "QRCode" -> QRCODE  // unsure which spelling devices send
                 "DATAMATRIX" -> DATAMATRIX
                 "PDF417" -> PDF417
                 "MICROQR" -> MICROQR
+                "AZTEC" -> AZTEC
+                "MAXICODE" -> MAXICODE
                 else -> UNKNOWN
             }
         }
