@@ -76,3 +76,23 @@ class ZebraProfileModel extends ProfileModel {
         //   'RESET_CONFIG': 'true'
       };
 }
+
+/// Newland settings, sent on as `ACTION_BAR_SCANCFG` broadcasts.
+class NewlandProfileModel extends ProfileModel {
+  /// On by default. The plugin drops failed scans anyway, so switching it off only saves traffic.
+  final bool? sendScanFailBroadcast;
+
+  NewlandProfileModel({
+    required super.profileName,
+    super.enabledBarcodes,
+    super.keepDefaults,
+    this.sendScanFailBroadcast,
+  });
+
+  @override
+  Map<String, dynamic> get customMap => {
+        'newland': {
+          if (sendScanFailBroadcast != null) 'sendScanFailBroadcast': sendScanFailBroadcast,
+        },
+      };
+}
