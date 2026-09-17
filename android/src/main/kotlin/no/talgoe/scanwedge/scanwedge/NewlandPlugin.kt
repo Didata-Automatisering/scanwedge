@@ -19,6 +19,12 @@ class NewlandPlugin(private val scanW: ScanwedgePlugin, private val log: Logger?
                 if (intent.action != NL_SCAN_ACTION)
                     return
 
+                val scanState = intent.getStringExtra("SCAN_STATE")
+                if (!isSuccessfulNewlandScan(scanState)) {
+                    log?.w(TAG, "Ignoring a scan that reported '$scanState'")
+                    return
+                }
+
                 val barcodeData = intent.getStringExtra("SCAN_BARCODE1")
                 val codeId = intent.getStringExtra("SCAN_BARCODE_TYPE_NAME")
                 if (barcodeData == null || codeId == null) {
@@ -82,3 +88,6 @@ class NewlandPlugin(private val scanW: ScanwedgePlugin, private val log: Logger?
         context?.unregisterReceiverSafely(barcodeDataReceiver)
     }
 }
+
+// Newland sends failures on the same broadcast as successes.
+internal fun isSuccessfulNewlandScan(scanState: String?) = scanState == null || scanState == "ok"
