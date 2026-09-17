@@ -21,8 +21,10 @@ class NewlandPlugin(private val scanW: ScanwedgePlugin, private val log: Logger?
 
                 val barcodeData = intent.getStringExtra("SCAN_BARCODE1")
                 val codeId = intent.getStringExtra("SCAN_BARCODE_TYPE_NAME")
-                if (barcodeData == null || codeId == null) {
-                    log?.e(TAG, "barcode or codeId is null")
+                if (barcodeData.isNullOrEmpty() || codeId == null) {
+                    // A failed trigger pull lands here too, which is routine rather than an error
+                    if (intent.getStringExtra("SCAN_STATE") == "fail") log?.i(TAG, "Scan failed")
+                    else log?.e(TAG, "barcode or codeId is null")
                     return
                 }
                 val barcodeType = BarcodeTypes.fromNewlandCode(codeId)
