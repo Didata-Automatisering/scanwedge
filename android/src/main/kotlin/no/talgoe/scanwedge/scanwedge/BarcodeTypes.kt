@@ -344,6 +344,29 @@ enum class BarcodeTypes(val code: String) {
             else -> null
         }
     }
+    fun newlandDecoderName(): String?{
+        return when(this) {
+            AZTEC -> "AZTEC"
+            CODABAR -> "CODABAR"
+            CODE128 -> "CODE128"
+            CODE39 -> "CODE39"
+            CODE93 -> "CODE93"
+            DATAMATRIX -> "DM"
+            EAN8 -> "EAN8"
+            EAN13 -> "EAN13"
+            EAN128 -> "UCCEAN128"
+            GS1_DATABAR -> "RSS"
+            GS1_DATABAR_EXPANDED -> "RSS"
+            I2OF5 -> "ITF"
+            MAXICODE -> "MAXIC"
+            MICROQR -> "MICROQR"
+            PDF417 -> "PDF417"
+            QRCODE -> "QR"
+            UPCA -> "UPCA"
+            UPCE0 -> "UPCE"
+            else -> null
+        }
+    }
     fun zebraDisableBarcode(bundle: Bundle) {
         val decoderName = zebraDecoderName()
         if(decoderName != null) {
@@ -360,6 +383,14 @@ enum class BarcodeTypes(val code: String) {
             bundle.putBoolean("${decoderName}_ENABLED", false)
         }else{
             Log.w("BarcodeTypes", "honeywellDisableBarcode: Invalid barcode type: $this")
+        }
+    }
+    fun newlandDisableBarcode(lst: ArrayList<NewlandBarcodeSetting>) {
+        val decoderName = newlandDecoderName()
+        if(decoderName != null) {
+            lst.add(NewlandBarcodeSetting(decoderName, "Enable", "0"))
+        }else{
+            Log.w("BarcodeTypes", "newlandDisableBarcode: Invalid barcode type: $this")
         }
     }
     fun datalogicDisableBarcode(lst: ArrayList<String>) {

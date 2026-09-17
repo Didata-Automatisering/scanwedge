@@ -9,6 +9,11 @@ import android.content.IntentFilter
 class NewlandPlugin(private val scanW: ScanwedgePlugin, private val log: Logger?) : IHardwarePlugin {
     companion object {
         private const val NL_SCAN_ACTION = "nlscan.action.SCANNER_RESULT"
+        private const val ACTION_BAR_SCANCFG = "ACTION_BAR_SCANCFG"
+        private const val ACTION_BARCODE_CFG = "ACTION_BARCODE_CFG"
+        private const val EXTRA_SCAN_MODE = "EXTRA_SCAN_MODE"
+        private const val SCAN_MODE_OUTPUT_VIA_API = 3
+        private const val SEND_SCAN_FAIL_BROADCAST = "SEND_SCAN_FAIL_BROADCAST"
         private const val TAG="NewlandPlugin"
     }
 
@@ -66,7 +71,31 @@ class NewlandPlugin(private val scanW: ScanwedgePlugin, private val log: Logger?
         hwConfig: HashMap<String, Any>?,
         keepDefaults: Boolean
     ): Boolean {
+        log?.i(TAG, "createProfile($name, $enabledBarcodes, $hwConfig, $keepDefaults)")
+
+        // Any other output mode types into the focused field, and the receiver above never fires.
+        sendScannerSetting(EXTRA_SCAN_MODE, SCAN_MODE_OUTPUT_VIA_API)
+        @Suppress("UNCHECKED_CAST")
+        val newlandConfig = hwConfig?.get("newland") as? HashMap<String, Any>
+        (newlandConfig?.get("sendScanFailBroadcast") as? Boolean)?.let {
+            sendScannerSetting(SEND_SCAN_FAIL_BROADCAST, if(it) 1 else 0)
+        }
+
+        val settings = newlandBarcodeSettings(enabledBarcodes, keepDefaults)
+        log?.i(TAG, "createProfile: $settings")
+        for(setting in settings){
+            scanW.sendBroadcast(Intent(ACTION_BARCODE_CFG).apply{
+                putExtra("CODE_ID", setting.codeId)
+                putExtra("PROPERTY", setting.property)
+                putExtra("VALUE", setting.value)
+            })
+        }
         return true
+    }
+
+    // One extra per broadcast: the handbook caps ACTION_BAR_SCANCFG at three.
+    private fun sendScannerSetting(key: String, value: Int) {
+        scanW.sendBroadcast(Intent(ACTION_BAR_SCANCFG).putExtra(key, value))
     }
 
     override fun enableScanner(): Boolean {
@@ -91,3 +120,21 @@ class NewlandPlugin(private val scanW: ScanwedgePlugin, private val log: Logger?
 
 // Newland sends failures on the same broadcast as successes.
 internal fun isSuccessfulNewlandScan(scanState: String?) = scanState == null || scanState == "ok"
+
+// Newland publishes no list of symbologies that are on out of the box, so `keepDefaults = false`
+// switches off everything nameable that was not asked for rather than a known default set.
+internal fun newlandBarcodeSettings(
+    enabledBarcodes: List<BarcodePlugin>?,
+    keepDefaults: Boolean,
+): ArrayList<NewlandBarcodeSetting> {
+    val settings = ArrayList<NewlandBarcodeSetting>()
+    enabledBarcodes?.forEach { it.newlandAddToList(settings) }
+    if (keepDefaults) return settings
+
+    val enabledTypes = enabledBarcodes?.map { it.type } ?: emptyList()
+    BarcodeTypes.values()
+        .filter { it !in enabledTypes && it.newlandDecoderName() != null }
+        .forEach { it.newlandDisableBarcode(settings) }
+
+    return settings
+}

@@ -60,6 +60,17 @@ class BarcodePlugin(val type: BarcodeTypes, private val minLength: Int?, private
 
     override fun toString() = "BarcodePlugin($type${if(minLength!=null||maxLength!=null) ",$minLength-$maxLength" else ""})"
 
+    // Lengths are left out: the handbook only names the "Minlen" property, not its max counterpart.
+    fun newlandAddToList(lst: ArrayList<NewlandBarcodeSetting>) {
+        val decoderName = type.newlandDecoderName()
+        if(decoderName != null) {
+            log?.d("BarcodePlugin", "newlandAddToList enable: $type, $decoderName")
+            lst.add(NewlandBarcodeSetting(decoderName, "Enable", "1"))
+        }else{
+            log?.e("BarcodePlugin", "newlandAddToList: Invalid barcode type: $type")
+        }
+    }
+
     fun datalogicAddToList(lst: ArrayList<String>) {
         val decoderName = type.datalogicDecoderName()
         if(decoderName != null) {
@@ -92,3 +103,6 @@ class BarcodePlugin(val type: BarcodeTypes, private val minLength: Int?, private
         }
     }
 }
+
+// One ACTION_BARCODE_CFG broadcast, which carries exactly one property of one symbology.
+data class NewlandBarcodeSetting(val codeId: String, val property: String, val value: String)
