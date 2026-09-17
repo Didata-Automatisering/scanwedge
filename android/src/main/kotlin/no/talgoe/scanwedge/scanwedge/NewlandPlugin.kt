@@ -11,9 +11,6 @@ class NewlandPlugin(private val scanW: ScanwedgePlugin, private val log: Logger?
         private const val NL_SCAN_ACTION = "nlscan.action.SCANNER_RESULT"
         private const val ACTION_BAR_SCANCFG = "ACTION_BAR_SCANCFG"
         private const val ACTION_BARCODE_CFG = "ACTION_BARCODE_CFG"
-        private const val EXTRA_SCAN_MODE = "EXTRA_SCAN_MODE"
-        private const val SCAN_MODE_OUTPUT_VIA_API = 3
-        private const val SEND_SCAN_FAIL_BROADCAST = "SEND_SCAN_FAIL_BROADCAST"
         private const val TAG="NewlandPlugin"
     }
 
@@ -73,12 +70,12 @@ class NewlandPlugin(private val scanW: ScanwedgePlugin, private val log: Logger?
     ): Boolean {
         log?.i(TAG, "createProfile($name, $enabledBarcodes, $hwConfig, $keepDefaults)")
 
-        // Any other output mode types into the focused field, and the receiver above never fires.
-        sendScannerSetting(EXTRA_SCAN_MODE, SCAN_MODE_OUTPUT_VIA_API)
         @Suppress("UNCHECKED_CAST")
         val newlandConfig = hwConfig?.get("newland") as? HashMap<String, Any>
-        (newlandConfig?.get("sendScanFailBroadcast") as? Boolean)?.let {
-            sendScannerSetting(SEND_SCAN_FAIL_BROADCAST, if(it) 1 else 0)
+        for((extra, value) in newlandScannerSettings(newlandConfig)){
+            scanW.sendBroadcast(Intent(ACTION_BAR_SCANCFG).apply{
+                if(value is Long) putExtra(extra, value) else putExtra(extra, value as Int)
+            })
         }
 
         val settings = newlandBarcodeSettings(enabledBarcodes, keepDefaults)
@@ -93,10 +90,6 @@ class NewlandPlugin(private val scanW: ScanwedgePlugin, private val log: Logger?
         return true
     }
 
-    // One extra per broadcast: the handbook caps ACTION_BAR_SCANCFG at three.
-    private fun sendScannerSetting(key: String, value: Int) {
-        scanW.sendBroadcast(Intent(ACTION_BAR_SCANCFG).putExtra(key, value))
-    }
 
     override fun enableScanner(): Boolean {
         log?.w(TAG, "Cannot programmatically control scanner")
@@ -141,4 +134,46 @@ internal fun newlandBarcodeSettings(
     }
 
     return settings
+}
+
+private val NEWLAND_FLAGS = mapOf(
+    "sendScanFailBroadcast" to "SEND_SCAN_FAIL_BROADCAST",
+    "soundOnScan" to "EXTRA_SCAN_NOTY_SND",
+    "vibrateOnScan" to "EXTRA_SCAN_NOTY_VIB",
+    "ledOnScan" to "EXTRA_SCAN_NOTY_LED",
+    "mainTriggerKey" to "TRIGGER_MODE_MAIN",
+    "leftTriggerKey" to "TRIGGER_MODE_LEFT",
+    "rightTriggerKey" to "TRIGGER_MODE_RIGHT",
+    "pistolGripTrigger" to "TRIGGER_MODE_BLACK",
+)
+
+private val NEWLAND_DURATIONS = mapOf(
+    "scanTimeout" to "SCAN_TIMEOUT",
+    "rereadDelay" to "NON_REPEAT_TIMEOUT",
+    "scanInterval" to "SCAN_INTERVAL",
+)
+
+// One extra per broadcast: the handbook caps ACTION_BAR_SCANCFG at three.
+internal fun newlandScannerSettings(config: HashMap<String, Any>?): List<Pair<String, Any>> {
+    // Any other output mode types into the focused field, and the scan receiver never fires.
+    val settings = mutableListOf<Pair<String, Any>>("EXTRA_SCAN_MODE" to 3)
+    if (config == null) return settings
+
+    for ((key, extra) in NEWLAND_FLAGS) {
+        (config[key] as? Boolean)?.let { settings.add(extra to if (it) 1 else 0) }
+    }
+    for ((key, extra) in NEWLAND_DURATIONS) {
+        (config[key] as? Number)?.let { settings.add(extra to it.toLong()) }
+    }
+    newlandTriggerMode(config["triggerMode"] as? String)?.let { settings.add("EXTRA_TRIG_MODE" to it) }
+
+    return settings
+}
+
+internal fun newlandTriggerMode(mode: String?) = when (mode) {
+    "level" -> 0
+    "continuous" -> 1
+    "pulse" -> 2
+    "delay" -> 4
+    else -> null
 }
