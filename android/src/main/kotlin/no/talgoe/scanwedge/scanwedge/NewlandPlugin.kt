@@ -124,10 +124,14 @@ internal fun newlandBarcodeSettings(
     enabledBarcodes?.forEach { it.newlandAddToList(settings) }
     if (keepDefaults) return settings
 
-    val enabledTypes = enabledBarcodes?.map { it.type } ?: emptyList()
-    BarcodeTypes.values()
-        .filter { it !in enabledTypes && it.newlandDecoderName() != null }
-        .forEach { it.newlandDisableBarcode(settings) }
+    // Both GS1 DataBar types share one CODE_ID, so an unfiltered sweep would undo its own enable.
+    val seenCodeIds = settings.mapTo(HashSet()) { it.codeId }
+    for (type in BarcodeTypes.values()) {
+        val codeId = type.newlandDecoderName() ?: continue
+        if (!seenCodeIds.add(codeId)) continue
+
+        type.newlandDisableBarcode(settings)
+    }
 
     return settings
 }
