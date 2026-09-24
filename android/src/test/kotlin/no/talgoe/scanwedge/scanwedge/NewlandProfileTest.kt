@@ -78,6 +78,13 @@ internal class NewlandProfileTest {
   }
 
   @Test
+  fun bothDataBarTypesEnableRssOnce() {
+    val settings = newlandBarcodeSettings(listOf(plugin(BarcodeTypes.GS1_DATABAR), plugin(BarcodeTypes.GS1_DATABAR_EXPANDED)), keepDefaults = true)
+
+    assertEquals(listOf(NewlandBarcodeSetting("RSS", "Enable", "1")), settings)
+  }
+
+  @Test
   fun aTypeNewlandCannotNameIsSkipped() {
     val settings = newlandBarcodeSettings(listOf(plugin(BarcodeTypes.MAILMARK)), keepDefaults = true)
 

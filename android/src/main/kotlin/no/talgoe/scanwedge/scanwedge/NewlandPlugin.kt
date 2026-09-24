@@ -113,8 +113,10 @@ internal fun newlandBarcodeSettings(
     enabledBarcodes: List<BarcodePlugin>?,
     keepDefaults: Boolean,
 ): ArrayList<NewlandBarcodeSetting> {
-    val settings = ArrayList<NewlandBarcodeSetting>()
-    enabledBarcodes?.forEach { it.newlandAddToList(settings) }
+    val asked = ArrayList<NewlandBarcodeSetting>()
+    enabledBarcodes?.forEach { it.newlandAddToList(asked) }
+    // Both DataBar types enable the same RSS toggle
+    val settings = ArrayList(asked.distinct())
     if (keepDefaults) return settings
 
     // The factory defaults differ per scan engine, so this switches off everything it can name instead
