@@ -79,6 +79,18 @@ class ZebraProfileModel extends ProfileModel {
 }
 
 /// Newland settings, sent on as `ACTION_BAR_SCANCFG` broadcasts.
+///
+/// Newland has no per-app profiles, so all of this changes the scanner for the whole device and stays
+/// after your app exits:
+///
+/// - `Scanwedge.initialize()` switches the scanner to broadcast output, so it stops typing into other
+///   apps.
+/// - `keepDefaults: false` switches symbologies off, and only Restore default in the scanner settings
+///   switches them back on.
+/// - `gs1DataBar` and `gs1DataBarExpanded` share one switch, so asking for either enables both. On a
+///   CM60L both also read back as `gs1DataBar`.
+/// - The scanner keeps a `minLength` above its current max length, so set both.
+/// - Out-of-range lengths, `0` included, are ignored rather than meaning "no limit".
 class NewlandProfileModel extends ProfileModel {
   /// On by default. The plugin drops failed scans anyway, so switching it off only saves traffic.
   final bool? sendScanFailBroadcast;
