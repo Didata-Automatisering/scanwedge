@@ -109,8 +109,6 @@ class NewlandPlugin(private val scanW: ScanwedgePlugin, private val log: Logger?
     }
 }
 
-// Newland publishes no list of symbologies that are on out of the box, so `keepDefaults = false`
-// switches off everything nameable that was not asked for rather than a known default set.
 internal fun newlandBarcodeSettings(
     enabledBarcodes: List<BarcodePlugin>?,
     keepDefaults: Boolean,
@@ -119,6 +117,7 @@ internal fun newlandBarcodeSettings(
     enabledBarcodes?.forEach { it.newlandAddToList(settings) }
     if (keepDefaults) return settings
 
+    // The factory defaults differ per scan engine, so this switches off everything it can name instead
     // Both GS1 DataBar types share one CODE_ID, so an unfiltered sweep would undo its own enable.
     val seenCodeIds = settings.mapTo(HashSet()) { it.codeId }
     for (type in BarcodeTypes.values()) {
@@ -127,9 +126,17 @@ internal fun newlandBarcodeSettings(
 
         type.newlandDisableBarcode(settings)
     }
+    // Hardcoded, unlike the defaults, because a name another engine lacks costs one ignored broadcast
+    NEWLAND_UNNAMED_CODE_IDS.forEach { settings.add(NewlandBarcodeSetting(it, "Enable", "0")) }
 
     return settings
 }
+
+// No BarcodeTypes for these, so their reads come back unknown. Names checked on a CM60L.
+private val NEWLAND_UNNAMED_CODE_IDS = listOf(
+    "AIM128", "CODE11", "CODE16K", "CODE49", "COMPOSITE", "CSC", "DOTCODE", "IND25", "ISBN", "ISSN",
+    "ITF14", "ITF6", "MATRIX25", "MICROPDF", "MSIPLSY", "PLSY", "STD25",
+)
 
 private val NEWLAND_FLAGS = mapOf(
     "sendScanFailBroadcast" to "SEND_SCAN_FAIL_BROADCAST",

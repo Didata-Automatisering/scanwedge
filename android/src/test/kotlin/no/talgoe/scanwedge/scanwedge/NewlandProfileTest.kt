@@ -31,6 +31,14 @@ internal class NewlandProfileTest {
   }
 
   @Test
+  fun droppingDefaultsAlsoSwitchesOffWhatBarcodeTypesCannotName() {
+    val settings = newlandBarcodeSettings(listOf(plugin(BarcodeTypes.CODE128)), keepDefaults = false)
+
+    assertTrue(settings.contains(NewlandBarcodeSetting("MATRIX25", "Enable", "0")))
+    assertTrue(settings.contains(NewlandBarcodeSetting("ISBN", "Enable", "0")))
+  }
+
+  @Test
   fun twoTypesSharingACodeIdDoNotCancelEachOther() {
     val shared = BarcodeTypes.GS1_DATABAR.newlandDecoderName()!!
     val settings = newlandBarcodeSettings(listOf(plugin(BarcodeTypes.GS1_DATABAR)), keepDefaults = false)
