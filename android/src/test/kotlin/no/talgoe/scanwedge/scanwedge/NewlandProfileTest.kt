@@ -15,6 +15,27 @@ internal class NewlandProfileTest {
   private fun plugin(type: BarcodeTypes) = BarcodePlugin(type, null, null, log)
 
   @Test
+  fun aFullSweepSendsExactlyThese() {
+    // A misspelt CODE_ID is dropped by the scanner without a word, so every string is spelt out here
+    val settings = newlandBarcodeSettings(listOf(BarcodePlugin(BarcodeTypes.CODE128, 10, 15, log)), keepDefaults = false)
+
+    val off = listOf(
+      "AZTEC", "CODABAR", "CODE39", "CODE93", "DM", "EAN13", "EAN8", "UCCEAN128", "RSS", "ITF", "MAXIC", "MICROQR",
+      "PDF417", "QR", "UPCA", "UPCE",
+      "AIM128", "CODE11", "CODE16K", "CODE49", "COMPOSITE", "CSC", "DOTCODE", "IND25", "ISBN", "ISSN",
+      "ITF14", "ITF6", "MATRIX25", "MICROPDF", "MSIPLSY", "PLSY", "STD25",
+    ).map { NewlandBarcodeSetting(it, "Enable", "0") }
+    assertEquals(
+      listOf(
+        NewlandBarcodeSetting("CODE128", "Enable", "1"),
+        NewlandBarcodeSetting("CODE128", "Minlen", "10"),
+        NewlandBarcodeSetting("CODE128", "Maxlen", "15"),
+      ) + off,
+      settings,
+    )
+  }
+
+  @Test
   fun keepingDefaultsOnlyEnablesWhatWasAskedFor() {
     val settings = newlandBarcodeSettings(listOf(plugin(BarcodeTypes.CODE128)), keepDefaults = true)
 
