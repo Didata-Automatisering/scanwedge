@@ -208,8 +208,9 @@ enum class BarcodeTypes(val code: String) {
                 // GS1 DataBar
                 "RSS14", "RSSLIMITED" -> GS1_DATABAR
                 "RSSEXPANDED" -> GS1_DATABAR_EXPANDED
+                "RSSFAMILY" -> GS1_DATABAR  // the CM60L sends this for plain and Expanded alike
                 // 2D
-                "QRCODE", "QRCode" -> QRCODE  // unsure which spelling devices send
+                "QRCODE" -> QRCODE
                 "DATAMATRIX" -> DATAMATRIX
                 "PDF417" -> PDF417
                 "MICROQR" -> MICROQR

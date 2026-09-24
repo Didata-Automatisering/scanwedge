@@ -22,6 +22,7 @@ internal class NewlandBarcodeTypeTest {
       "RSS14" to BarcodeTypes.GS1_DATABAR,
       "RSSLIMITED" to BarcodeTypes.GS1_DATABAR,
       "RSSEXPANDED" to BarcodeTypes.GS1_DATABAR_EXPANDED,
+      "RSSFAMILY" to BarcodeTypes.GS1_DATABAR,
       "QRCODE" to BarcodeTypes.QRCODE,
       "DATAMATRIX" to BarcodeTypes.DATAMATRIX,
       "PDF417" to BarcodeTypes.PDF417,
