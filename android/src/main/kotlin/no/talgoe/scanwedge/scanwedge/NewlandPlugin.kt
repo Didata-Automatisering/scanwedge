@@ -41,7 +41,6 @@ class NewlandPlugin(private val scanW: ScanwedgePlugin, private val log: Logger?
 
     override val apiVersion: String get() = "NEWLAND"
 
-
     override fun initialize(context: Context?): Boolean {
         log?.i(TAG, "$TAG initializing")
         if (context == null)
@@ -71,9 +70,16 @@ class NewlandPlugin(private val scanW: ScanwedgePlugin, private val log: Logger?
         @Suppress("UNCHECKED_CAST")
         val newlandConfig = hwConfig?.get("newland") as? HashMap<String, Any>
         for((extra, value) in newlandScannerSettings(newlandConfig)){
-            scanW.sendBroadcast(Intent(ACTION_BAR_SCANCFG).apply{
-                if(value is Long) putExtra(extra, value) else putExtra(extra, value as Int)
-            })
+            val intent = Intent(ACTION_BAR_SCANCFG)
+            when(value) {
+                is Long -> intent.putExtra(extra, value)
+                is Int -> intent.putExtra(extra, value)
+                else -> {
+                    log?.e(TAG, "createProfile: no extra type for $extra=$value, skipping it")
+                    continue
+                }
+            }
+            scanW.sendBroadcast(intent)
         }
 
         val settings = newlandBarcodeSettings(enabledBarcodes, keepDefaults)
@@ -87,7 +93,6 @@ class NewlandPlugin(private val scanW: ScanwedgePlugin, private val log: Logger?
         }
         return true
     }
-
 
     override fun enableScanner(): Boolean {
         log?.w(TAG, "Cannot programmatically control scanner")
