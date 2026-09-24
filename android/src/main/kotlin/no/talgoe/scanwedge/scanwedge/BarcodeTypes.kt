@@ -206,6 +206,7 @@ enum class BarcodeTypes(val code: String) {
                 "UPCA" -> UPCA
                 "UPCE" -> UPCE0
                 // GS1 DataBar
+                // These 3 come from NL's type table and haven't been seen on a CM60L
                 "RSS14", "RSSLIMITED" -> GS1_DATABAR
                 "RSSEXPANDED" -> GS1_DATABAR_EXPANDED
                 "RSSFAMILY" -> GS1_DATABAR  // the CM60L sends this for plain and Expanded alike
