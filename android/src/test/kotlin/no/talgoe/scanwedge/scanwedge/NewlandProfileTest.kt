@@ -42,6 +42,34 @@ internal class NewlandProfileTest {
   }
 
   @Test
+  fun lengthsGoOutAsMinlenAndMaxlen() {
+    val settings = newlandBarcodeSettings(listOf(BarcodePlugin(BarcodeTypes.CODE128, 10, 15, log)), keepDefaults = true)
+
+    assertEquals(
+      listOf(
+        NewlandBarcodeSetting("CODE128", "Enable", "1"),
+        NewlandBarcodeSetting("CODE128", "Minlen", "10"),
+        NewlandBarcodeSetting("CODE128", "Maxlen", "15"),
+      ),
+      settings,
+    )
+  }
+
+  @Test
+  fun onlyTheLengthAskedForIsSent() {
+    val settings = newlandBarcodeSettings(listOf(BarcodePlugin(BarcodeTypes.CODE39, 4, null, log)), keepDefaults = true)
+
+    assertEquals(listOf(NewlandBarcodeSetting("CODE39", "Enable", "1"), NewlandBarcodeSetting("CODE39", "Minlen", "4")), settings)
+  }
+
+  @Test
+  fun fixedLengthSymbologiesGetNoLengths() {
+    val settings = newlandBarcodeSettings(listOf(BarcodePlugin(BarcodeTypes.EAN13, 10, 15, log)), keepDefaults = true)
+
+    assertEquals(listOf(NewlandBarcodeSetting("EAN13", "Enable", "1")), settings)
+  }
+
+  @Test
   fun aTypeNewlandCannotNameIsSkipped() {
     val settings = newlandBarcodeSettings(listOf(plugin(BarcodeTypes.MAILMARK)), keepDefaults = true)
 

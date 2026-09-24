@@ -60,12 +60,20 @@ class BarcodePlugin(val type: BarcodeTypes, private val minLength: Int?, private
 
     override fun toString() = "BarcodePlugin($type${if(minLength!=null||maxLength!=null) ",$minLength-$maxLength" else ""})"
 
-    // Lengths are left out: the handbook only names the "Minlen" property, not its max counterpart.
     fun newlandAddToList(lst: ArrayList<NewlandBarcodeSetting>) {
         val decoderName = type.newlandDecoderName()
         if(decoderName != null) {
             log?.d("BarcodePlugin", "newlandAddToList enable: $type, $decoderName")
             lst.add(NewlandBarcodeSetting(decoderName, "Enable", "1"))
+            if(!type.newlandHasLengthControl()){
+                if(minLength != null || maxLength != null) {
+                    log?.i("BarcodePlugin", "newlandAddToList: $type has no length control on Newland, ignoring $minLength-$maxLength")
+                }
+                return
+            }
+            // The scanner drops values outside its range without a word, 0 included
+            minLength?.let { lst.add(NewlandBarcodeSetting(decoderName, "Minlen", "$it")) }
+            maxLength?.let { lst.add(NewlandBarcodeSetting(decoderName, "Maxlen", "$it")) }
         }else{
             log?.e("BarcodePlugin", "newlandAddToList: Invalid barcode type: $type")
         }

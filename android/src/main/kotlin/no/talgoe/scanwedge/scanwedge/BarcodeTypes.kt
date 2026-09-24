@@ -345,6 +345,10 @@ enum class BarcodeTypes(val code: String) {
             else -> null
         }
     }
+    fun newlandHasLengthControl(): Boolean = when(this) {
+        AZTEC, CODABAR, CODE128, CODE39, CODE93, DATAMATRIX, EAN128, I2OF5, MAXICODE, MICROQR, PDF417, QRCODE -> true
+        else -> false
+    }
     fun newlandDecoderName(): String?{
         return when(this) {
             AZTEC -> "AZTEC"
