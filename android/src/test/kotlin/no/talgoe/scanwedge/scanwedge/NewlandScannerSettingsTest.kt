@@ -6,8 +6,8 @@ import kotlin.test.assertTrue
 
 internal class NewlandScannerSettingsTest {
   @Test
-  fun apiOutputIsSentEvenWithoutAConfig() {
-    assertEquals(listOf<Pair<String, Any>>("EXTRA_SCAN_MODE" to 3), newlandScannerSettings(null))
+  fun outputModeIsLeftToInitialize() {
+    assertEquals(emptyList(), newlandScannerSettings(null))
   }
 
   @Test

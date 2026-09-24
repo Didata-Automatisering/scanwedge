@@ -51,6 +51,8 @@ class NewlandPlugin(private val scanW: ScanwedgePlugin, private val log: Logger?
         filter.addAction(NL_SCAN_ACTION)
         return try {
             context.registerReceiverCompat(barcodeDataReceiver, filter, exported = false)
+            // Every other output mode types into the focused field, so the receiver would never fire
+            scanW.sendBroadcast(Intent(ACTION_BAR_SCANCFG).putExtra("EXTRA_SCAN_MODE", 3))
             true
         } catch (e: Exception) {
             log?.e(TAG, "$TAG initialize, Exception: ${e.message}")
@@ -148,8 +150,7 @@ private val NEWLAND_DURATIONS = mapOf(
 
 // One extra per broadcast: the handbook caps ACTION_BAR_SCANCFG at three.
 internal fun newlandScannerSettings(config: HashMap<String, Any>?): List<Pair<String, Any>> {
-    // Any other output mode types into the focused field, and the scan receiver never fires.
-    val settings = mutableListOf<Pair<String, Any>>("EXTRA_SCAN_MODE" to 3)
+    val settings = mutableListOf<Pair<String, Any>>()
     if (config == null) return settings
 
     for ((key, extra) in NEWLAND_FLAGS) {
